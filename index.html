@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Never Surrender</title>
+        
+        <link rel="stylesheet" href="style.css">
+        
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    </head>
+    <body>
+        
+        <div id="root"></div>
+        
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // Komponen LoadingScreen
+            const LoadingScreen = () => (
+                <div id="loading-screen" className="loading-screen">
+                    <div className="loading-spinner">
+                        <div className="spinner"></div>
+                        <p>Loading NeverSurrender...</p>
+                    </div>
+                </div>
+            );
+
+            // Komponen Header dan Navigasi
+            const Header = () => {
+                const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+                const [activeSection, setActiveSection] = useState('beranda');
+
+                useEffect(() => {
+                    const handleScroll = () => {
+                        const sections = ['beranda', 'tentang', 'struktur', 'kegiatan', 'galeri'];
+                        let current = 'beranda';
+                        for (const id of sections) {
+                            const section = document.getElementById(id);
+                            if (section && window.scrollY >= section.offsetTop - 150) {
+                                current = id;
+                            }
+                        }
+                        setActiveSection(current);
+                    };
+                    window.addEventListener('scroll', handleScroll);
+                    return () => window.removeEventListener('scroll', handleScroll);
+                }, []);
+                
+                const toggleMenu = () => {
+                    setMobileMenuOpen(prev => !prev);
+                    document.body.classList.toggle('menu-open', !isMobileMenuOpen);
+                };
+
+                const NavLinks = ({ isMobile = false }) => {
+                    const links = [
+                        { href: '#beranda', label: 'Beranda', id: 'beranda' },
+                        { href: '#tentang', label: 'Tentang Kami', id: 'tentang' },
+                        { href: '#struktur', label: 'Struktur', id: 'struktur' },
+                        { href: '#kegiatan', label: 'Kegiatan', id: 'kegiatan' },
+                        { href: '#galeri', label: 'Galeri', id: 'galeri' }
+                    ];
+
+                    const linkClass = (id) => activeSection === id ? 'active' : '';
+
+                    if (isMobile) {
+                        return (
+                            <ul className="mobile-nav-links">
+                                {links.map(link => (
+                                    <li key={link.id}><a href={link.href} className={linkClass(link.id)} onClick={() => setMobileMenuOpen(false)}>{link.label}</a></li>
+                                ))}
+                            </ul>
+                        );
+                    }
+
+                    return (
+                        <ul className="nav-links">
+                            {links.map(link => (
+                                <li key={link.id}><a href={link.href} className={linkClass(link.id)}>{link.label}</a></li>
+                            ))}
+                        </ul>
+                    );
+                };
+
+                return (
+                    <header>
+                        <nav>
+                            <div className="logo">
+                                <img src="img/logoNvS.jpg" alt="NvS Logo" />
+                                {/* Menambahkan kelas "logo-text-primary" di sini */}
+                                <h1 className="logo-text-primary">NeverSurrender</h1>
+                            </div>
+                            <NavLinks />
+                            <div id="hamburger" className={`hamburger ${isMobileMenuOpen ? 'active' : ''}`} onClick={toggleMenu}>
+                                <span></span><span></span><span></span>
+                            </div>
+                        </nav>
+                        <div id="mobile-menu" className={`mobile-menu-overlay ${isMobileMenuOpen ? 'active' : ''}`} onClick={(e) => { if (e.target.id === 'mobile-menu') toggleMenu(); }}>
+                            <NavLinks isMobile={true} />
+                        </div>
+                    </header>
+                );
+            };
+
+            // Komponen Hero
+            const Hero = () => (
+                <section id="beranda" className="hero">
+                    <div className="hero-content">
+                        <div className="hero-text">
+                            <h1>Selamat Datang di <span className="highlight">NeverSurrender</span></h1>
+                            <p>Komunitas gaming yang menghubungkan teman untuk bermain bersama dan berbagi pengalaman</p>
+                            <div className="hero-buttons">
+                                <a href="#tentang" className="btn-primary">Pelajari Lebih Lanjut</a>
+                            </div>
+                        </div>
+                        <div className="hero-image">
+                            <div className="floating-element"></div>
+                            <div className="floating-element"></div>
+                            <div className="floating-element"></div>
+                        </div>
+                    </div>
+                </section>
+            );
+
+            // Komponen About
+            const About = () => {
+                const statsRef = useRef(null);
+
+                useEffect(() => {
+                    const counters = statsRef.current.querySelectorAll('.counter');
+                    const animateCounters = () => {
+                        counters.forEach(counter => {
+                            const updateCount = () => {
+                                const target = +counter.getAttribute('data-target');
+                                const count = +counter.innerText;
+                                const increment = target / 100;
+
+                                if (count < target) {
+                                    counter.innerText = `${Math.ceil(count + increment)}`;
+                                    setTimeout(updateCount, 20);
+                                } else {
+                                    counter.innerText = target;
+                                }
+                            };
+                            updateCount();
+                        });
+                    };
+
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                animateCounters();
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.5 });
+                    
+                    if (statsRef.current) {
+                        observer.observe(statsRef.current);
+                    }
+
+                    return () => observer.disconnect();
+                }, []);
+                
+                return (
+                    <section id="tentang" className="about">
+                        <div className="container">
+                            <h2 className="section-title">Tentang Kami</h2>
+                            <div className="about-content">
+                                <div className="about-text">
+                                    <h3>NeverSurrender - Est. 2019</h3>
+                                    <p>Kami adalah komunitas gaming yang terbentuk dari beberapa teman sekolah yang aktif bermain game dan juga memiliki beberapa kesukaan yang sama</p>
+                                    <p>Squad kami terdiri dari beberapa teman yang dikumpulkan oleh ketua dan juga sang pendiri</p>
+                                    <div className="stats" ref={statsRef}>
+                                        <div className="stat-item">
+                                            <h4 className="counter" data-target="8">0</h4>
+                                            <p>Active Members</p>
+                                        </div>
+                                        <div className="stat-item">
+                                            <h4 className="counter" data-target="4">0</h4>
+                                            <p>Hangout Session</p>
+                                        </div>
+                                        <div className="stat-item">
+                                            <h4 className="counter" data-target="100">0</h4>
+                                            <p>± Games Played</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="about-image">
+                                    <div className="image-placeholder">
+                                        <img src="img/NvSFull.png" alt="NvS Logo 2" onError={(e) => { e.target.parentElement.innerHTML = '<div class="image-fallback"><div class="fallback-icon">🎮</div><p>NeverSurrender<br>Logo</p></div>'; }} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            };
+            
+            // Komponen lainnya... (Struktur, Kegiatan, Galeri, Footer)
+            const Structure = () => { const members = [{ img: 'img/Yosua.png', name: 'YoUZee', realName: 'Yosua Yulius Zeser', rank: 'Squad Leader', badge: 'Founder', isLeader: true }, { icon: '⭐', name: 'Username', realName: 'Gaming Enthusiast', rank: 'Member' }, { icon: '🎮', name: 'Username', realName: 'Pro Gamer', rank: 'Member' }, { icon: '🔥', name: 'Username', realName: 'Strategy Master', rank: 'Member' }, { icon: '⚡', name: 'Username', realName: 'Quick Reflexes', rank: 'Member' }, { icon: '🎯', name: 'Username', realName: 'Sniper Specialist', rank: 'Member' }, { icon: '🛡️', name: 'Username', realName: 'Team Support', rank: 'Member' }, { icon: '🆕', name: 'Username', realName: 'Rising Talent', rank: 'New Member' }]; return ( <section id="struktur" className="structure"><div className="container"><h2 className="section-title">Struktur Squad</h2><div className="structure-grid">{members.map((member, index) => ( <div key={index} className={`member-card ${member.isLeader ? 'leader-card' : ''}`}><div className="member-avatar">{member.img ? <img src={member.img} alt={member.name} onError={(e) => { e.target.parentElement.innerHTML = `<div class='avatar-fallback'><span>👑</span></div>`; }}/> : <div className="avatar-fallback"><span>{member.icon}</span></div>}</div><div className="member-rank">{member.rank}</div><h4>{member.name}</h4><p>{member.realName}</p>{member.badge && <div className="member-badge">{member.badge}</div>}</div> ))}</div></div></section> ); };
+            const Activities = () => { const activitiesData = [{ icon: '🎮', title: 'Daily Gaming Session', description: 'Bermain game bersama setiap hari dengan berbagai genre game yang seru' }, { icon: '🏆', title: 'Tournament Internal', description: 'Mengadakan turnamen mini antar member untuk mengasah skill dan bersenang-senang' }, { icon: '🎭', title: 'Game Night', description: 'Sesi gaming khusus di malam hari dengan game-game pilihan dan voice chat' }, { icon: '🎉', title: 'Squad Hangout', description: 'Ngobrol santai, sharing tips gaming, dan membahas game-game terbaru' }]; return ( <section id="kegiatan" className="activities"><div className="container"><h2 className="section-title">Kegiatan Squad</h2><div className="activities-grid">{activitiesData.map((activity, index) => ( <div key={index} className="activity-card"><div className="activity-icon">{activity.icon}</div><h3>{activity.title}</h3><p>{activity.description}</p></div> ))}</div></div></section> ); };
+            const Gallery = () => { const [modalItem, setModalItem] = useState(null); const galleryData = [{ image: 'img/gaming-session-1.jpg', title: 'Gaming Session 1', icon: '📸' }, { image: 'img/tournament-winner.jpg', title: 'Tournament Winner', icon: '🏆' }, { image: 'img/squad-meetup.jpg', title: 'Squad Meet Up', icon: '👥' }, { image: 'img/game-night.jpg', title: 'Game Night', icon: '🌙' }, { image: 'img/new-members.jpg', title: 'New Members', icon: '🆕' }, { image: 'img/victory-screenshot.jpg', title: 'Victory Screenshot', icon: '🎯' },]; const openModal = (item) => { setModalItem(item); document.body.classList.add('modal-open'); }; const closeModal = () => { setModalItem(null); document.body.classList.remove('modal-open'); }; return ( <section id="galeri" className="gallery"><div className="container"><h2 className="section-title">Galeri</h2><div className="gallery-grid">{galleryData.map((item, index) => ( <div key={index} className="gallery-item" onClick={() => openModal(item)}><div className="gallery-placeholder"><div className="gallery-icon">{item.icon}</div><p>{item.title}</p></div></div> ))}</div></div>{modalItem && ( <div id="gallery-modal" className="gallery-modal active" onClick={closeModal}><div className="modal-content" onClick={(e) => e.stopPropagation()}><span className="modal-close" onClick={closeModal}>&times;</span><img src={modalItem.image} alt={modalItem.title} id="modal-image" onError={(e) => { e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMWExYTJlIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNDAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzAwZDRhYSIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9ImJvbGQiPvCfk7g8L3RleHQ+Cjx0ZXh0IHg9IjUwJSI yeT0iNjAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2IwYjBiMCIgZm9udC1zaXplPSIxNiI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pgo8L3N2Zz4K'; }} /><div className="modal-caption"><h4 id="modal-title">{modalItem.title}</h4><p id="modal-description">Foto dari kegiatan {modalItem.title} NeverSurrender Squad.</p></div></div></div> )} </section> ); };
+            const Footer = () => ( <footer><div className="container"><div className="footer-content"><div className="footer-section"><div className="logo"><img src="img/logoNvS.jpg" alt="Logo NvS"/> {/* Menambahkan kelas "logo-text-primary" di sini */} <h3 className="logo-text-primary">NeverSurrender</h3></div><p>Komunitas gaming untuk hangout dan bermain bersama teman-teman.</p></div><div className="footer-section"><h4>Quick Links</h4><ul><li><a href="#beranda">Beranda</a></li><li><a href="#tentang">Tentang Kami</a></li><li><a href="#kegiatan">Kegiatan</a></li><li><a href="#galeri">Galeri</a></li></ul></div><div className="footer-section"><h4>Gaming Platforms</h4><ul><li><a href="#">Steam</a></li><li><a href="#">Discord</a></li><li><a href="#">Mobile Games</a></li><li><a href="#">Console Gaming</a></li></ul></div><div className="footer-section"><h4>Follow Us</h4><ul><li><a href="#">Discord</a></li><li><a href="#">Instagram</a></li><li><a href="#">YouTube</a></li><li><a href="#">Twitch</a></li></ul></div></div><div className="footer-bottom"><p>&copy; {new Date().getFullYear()} NeverSurrender - Yosua Yulius Zeser</p></div></div></footer> );
+
+            // Komponen Aplikasi Utama
+            const App = () => {
+                const [isLoading, setIsLoading] = useState(true);
+                
+                useEffect(() => {
+                    const handleLoad = () => {
+                        const loadingScreen = document.getElementById('loading-screen');
+                        if (loadingScreen) {
+                            loadingScreen.style.opacity = '0';
+                            setTimeout(() => {
+                                setIsLoading(false);
+                            }, 500); // Waktu untuk transisi fade-out
+                        }
+                    };
+                    
+                    // Memastikan semua aset (gambar, dll) dimuat
+                    window.addEventListener('load', handleLoad);
+                    
+                    // Fallback jika 'load' event sudah terlewat
+                    if (document.readyState === 'complete') {
+                        handleLoad();
+                    }
+                    
+                    return () => window.removeEventListener('load', handleLoad);
+                }, []);
+                
+                return (
+                    <>
+                        {isLoading && <LoadingScreen />}
+                        <div style={{ display: isLoading ? 'none' : 'block' }}>
+                            <Header />
+                            <main>
+                                <Hero />
+                                <About />
+                                <Structure />
+                                <Activities />
+                                <Gallery />
+                            </main>
+                            <Footer />
+                        </div>
+                    </>
+                );
+            };
+
+            ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        </script>
+    </body>
+</html>
